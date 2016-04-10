@@ -103,9 +103,7 @@ final boolean hasCounselling=postDonationCounsellingRepository
         }
 
 
-        import com.fasterxml.jackson.annotation.JsonInclude;
-        import com.fasterxml.jackson.annotation.JsonInclude.Include;
-        import org.springframework.http.HttpStatus;
+
 
 /**
  * The response model class all the API requests

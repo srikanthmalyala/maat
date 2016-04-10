@@ -1,7 +1,7 @@
 This is the class taken from an open source project here https://github.com/jembi/bsis/blob/master/src/controller/DonorController.java
 
 
-// Bad code 
+// The below method is badly coded. the reasons
 
         No proper response model.
         No log statements

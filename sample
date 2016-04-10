@@ -1,0 +1,161 @@
+This is the
+
+class taken from an open source project here https://github.com/jembi/bsis/blob/master/src/controller/DonorController.java
+
+
+// Bad code 
+
+        No proper response model.
+        No log statements
+        Variables are not declared as finals
+        No null checks
+
+        ----------------------------------------------------------------------------
+
+@RequestMapping(value = "/{id}/overview", method = RequestMethod.GET)
+@PreAuthorize("hasRole('" + PermissionConstants.VIEW_DONOR + "')")
+public ResponseEntity<Map<String, Object>>viewDonorOverview(HttpServletRequest request,
+@PathVariable Long id){
+
+        Map<String, Object>map=new HashMap<String, Object>();
+        Donor donor=donorRepository.findDonorById(id);
+        List<Donation>donations=donor.getDonations();
+
+        boolean flaggedForCounselling=postDonationCounsellingRepository
+        .countFlaggedPostDonationCounsellingsForDonor(donor.getId())>0;
+
+        boolean hasCounselling=postDonationCounsellingRepository
+        .countNotFlaggedPostDonationCounsellingsForDonor(donor.getId())>0;
+
+        map.put("currentlyDeferred",donorDeferralStatusCalculator.isDonorCurrentlyDeferred(donor));
+        map.put("flaggedForCounselling",flaggedForCounselling);
+        map.put("hasCounselling",hasCounselling);
+        map.put("deferredUntil",CustomDateFormatter.getDateString(donorRepository.getLastDonorDeferralDate(id)));
+        map.put("deferral",donorRepository.getLastDonorDeferral(id));
+        map.put("canDelete",donorConstraintChecker.canDeleteDonor(id));
+        map.put("isEligible",donorConstraintChecker.isDonorEligibleToDonate(id));
+        map.put("birthDate",CustomDateFormatter.getDateString(donor.getBirthDate()));
+        if(donations.size()>0){
+        map.put("lastDonation",getDonationViewModel(donations.get(donations.size()-1)));
+        map.put("dateOfFirstDonation",CustomDateFormatter.getDateString(donations.get(0).getDonationDate()));
+        map.put("totalDonations",getNumberOfDonations(donations));
+        map.put("dueToDonate",CustomDateFormatter.getDateString(donor.getDueToDonate()));
+        map.put("totalAdverseEvents",adverseEventRepository.countAdverseEventsForDonor(donor));
+        }else{
+        map.put("lastDonation","");
+        map.put("dateOfFirstDonation","");
+        map.put("totalDonations",0);
+        map.put("dueToDonate","");
+        map.put("totalAdverseEvents",0);
+        }
+        return new ResponseEntity<Map<String, Object>>(map,HttpStatus.OK);
+        }
+
+        --------------------------------------------------------------------------------------------
+
+
+        I rewrote the code down considering those points
+
+/**
+ * Returns donor summary info view
+ *
+ * @param
+ * @return
+ */
+@RequestMapping(value = "/{id}/overview", method = RequestMethod.GET)
+@PreAuthorize("hasRole('" + PermissionConstants.VIEW_DONOR + "')")
+public Response viewDonorOverview(fina HttpServletRequest request,
+final @PathVariable Long id){
+
+final Map<String, Object>donorInfoMap=new HashMap<String, Object>();
+final Donor donor=donorRepository.findDonorById(id);
+
+        if(donor==null){
+        log.error("donor not found with the ID %s",id);
+        return new Response(HttpStatus.NOT_FOUND,"Donor not found with ID :"+id,donorInfoMap);
+        }
+
+final List<Donation>donations=donor.getDonations();
+
+final boolean flaggedForCounselling=postDonationCounsellingRepository
+        .countFlaggedPostDonationCounsellingsForDonor(donor.getId())>0;
+
+final boolean hasCounselling=postDonationCounsellingRepository
+        .countNotFlaggedPostDonationCounsellingsForDonor(donor.getId())>0;
+
+        donorInfoMap.put("currentlyDeferred",donorDeferralStatusCalculator.isDonorCurrentlyDeferred(donor));
+        donorInfoMap.put("flaggedForCounselling",flaggedForCounselling);
+        donorInfoMap.put("hasCounselling",hasCounselling);
+        donorInfoMap.put("deferredUntil",CustomDateFormatter.getDateString(donorRepository.getLastDonorDeferralDate(id)));
+        donorInfoMap.put("deferral",donorRepository.getLastDonorDeferral(id));
+        donorInfoMap.put("canDelete",donorConstraintChecker.canDeleteDonor(id));
+        donorInfoMap.put("isEligible",donorConstraintChecker.isDonorEligibleToDonate(id));
+        donorInfoMap.put("birthDate",CustomDateFormatter.getDateString(donor.getBirthDate()));
+
+        if(CollectionUtils.isNotEMpty(donations)){
+        log.debug("%s donations found for donor with ID %s",donations.size());
+        donorInfoMap.put("lastDonation",getDonationViewModel(donations.get(donations.size()-1)));
+        donorInfoMap.put("dateOfFirstDonation",CustomDateFormatter.getDateString(donations.get(0).getDonationDate()));
+        donorInfoMap.put("totalDonations",getNumberOfDonations(donations));
+        donorInfoMap.put("dueToDonate",CustomDateFormatter.getDateString(donor.getDueToDonate()));
+        donorInfoMap.put("totalAdverseEvents",adverseEventRepository.countAdverseEventsForDonor(donor));
+        }
+
+        return new Response(HttpStatus.OK.value(),HttpStatus.OK.getReasonPhrase(),donorInfoMap);
+        }
+
+
+        import com.fasterxml.jackson.annotation.JsonInclude;
+        import com.fasterxml.jackson.annotation.JsonInclude.Include;
+        import org.springframework.http.HttpStatus;
+
+/**
+ * The response model class all the API requests
+ */
+@JsonInclude(Include.NON_NULL)
+public class Response {
+    private int code;
+    private String result;
+    private Object data;
+
+    public Response() {
+    }
+
+    public Response(int i, String result) {
+        this.code = i;
+        this.result = result;
+    }
+
+    public Response(int code, String result, Object data) {
+        this.code = code;
+        this.result = result;
+        this.data = data;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public String getResult() {
+        return result;
+    }
+
+    public void setResult(String result) {
+        this.result = result;
+    }
+
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
+    }
+
+}
+
+I apologise for not having the code in consistent format becuase I used test editor.

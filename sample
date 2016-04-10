@@ -68,10 +68,10 @@ final @PathVariable Long id){
 final Map<String, Object>donorInfoMap=new HashMap<String, Object>();
 final Donor donor=donorRepository.findDonorById(id);
 
-        if(donor==null){
+if(donor==null){
         log.error("donor not found with the ID %s",id);
         return new Response(HttpStatus.NOT_FOUND,"Donor not found with ID :"+id,donorInfoMap);
-        }
+}
 
 final List<Donation>donations=donor.getDonations();
 

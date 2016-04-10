@@ -90,14 +90,14 @@ final boolean hasCounselling=postDonationCounsellingRepository
         donorInfoMap.put("isEligible",donorConstraintChecker.isDonorEligibleToDonate(id));
         donorInfoMap.put("birthDate",CustomDateFormatter.getDateString(donor.getBirthDate()));
 
-        if(CollectionUtils.isNotEMpty(donations)){
+   if(CollectionUtils.isNotEMpty(donations)){
         log.debug("%s donations found for donor with ID %s",donations.size());
         donorInfoMap.put("lastDonation",getDonationViewModel(donations.get(donations.size()-1)));
         donorInfoMap.put("dateOfFirstDonation",CustomDateFormatter.getDateString(donations.get(0).getDonationDate()));
         donorInfoMap.put("totalDonations",getNumberOfDonations(donations));
         donorInfoMap.put("dueToDonate",CustomDateFormatter.getDateString(donor.getDueToDonate()));
         donorInfoMap.put("totalAdverseEvents",adverseEventRepository.countAdverseEventsForDonor(donor));
-        }
+    }
 
         return new Response(HttpStatus.OK.value(),HttpStatus.OK.getReasonPhrase(),donorInfoMap);
         }
